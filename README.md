@@ -13,14 +13,12 @@ git gsub '"piyo\#{4 + 1}"' 'piyo\#{$1.to_i + 1}'
 ### Getting started.
 
 ``` sh
-wget https://github.com/katsusuke/git-gsub/raw/master/git-gsub.rb
-sudo mv git-gsub.rb /usr/local/bin
+curl https://raw.githubusercontent.com/katsusuke/git-gsub-ruby/master/git-gsub.rb > /usr/local/chmod +x /usr/local/bin/git-gsu
 ```
 
 Edit your .gitconfig file
 ```
 [alias]
   # add new line
-	gsub = !/usr/local/bin/git-gsub.rb
+	gsub = !/usr/local/bin/git-gsub
 ```
-
