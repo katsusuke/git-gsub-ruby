@@ -2,7 +2,6 @@
 
 require "open3"
 require 'optparse'
-require 'pry'
 
 def text_file?(filename)
   file_type, status = Open3.capture2e("file", filename.to_s)
@@ -22,8 +21,8 @@ options:
 
 example:
 git gsub hoge piyo
-git gsub -re '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
-git gsub -re '"piyo\#{4 + 1}"' 'piyo\#{$1.to_i + 1}' '**/*.rb'
+git gsub -e '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
+git gsub -e -e '/belongs_to :(\w+)([^#\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
 USAGE
 
 opts = ARGV.getopts('e', 'eval')
