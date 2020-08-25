@@ -1,4 +1,4 @@
-git-gsub
+git-gsub-ruby
 ========
 
 Replace text for all git controlled files by ruby gsub.
