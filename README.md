@@ -1,7 +1,12 @@
 git-gsub
 ========
 
-Evaluate ruby gsub script on git.
+Replace text for all git controlled files by ruby gsub.
+
+You can control the gsub replacement with the ruby script.
+
+Inspired by [git-gsub](https://github.com/fujimura/git-gsub)
+
 
 ### Usage
 
@@ -22,11 +27,9 @@ Edit your .gitconfig file
   # add new line
 	gsub = !git-gsub-ruby
 ```
-Or `git config`
+Or use `git config`
 
-``` bash
-git config --global alias.gsub '!git-gsub-ruby'
-```
+    $ git config --global alias.gsub '!git-gsub-ruby'
 
 
 ## Contributing
