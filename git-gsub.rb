@@ -22,7 +22,7 @@ options:
 example:
 git gsub hoge piyo
 git gsub -e '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
-git gsub -e -e '/belongs_to :(\w+)([^#\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
+git gsub -e '/belongs_to :(\w+)([^#\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
 USAGE
 
 opts = ARGV.getopts('e', 'eval')
