@@ -22,7 +22,11 @@ Edit your .gitconfig file
   # add new line
 	gsub = !git-gsub-ruby
 ```
+Or `git config`
 
+``` bash
+git config --global alias.gs '!git-gsub-ruby'
+```
 
 
 ## Contributing
