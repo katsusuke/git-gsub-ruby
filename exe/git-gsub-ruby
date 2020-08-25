@@ -2,6 +2,7 @@
 
 require "open3"
 require 'optparse'
+require 'git/gsub/ruby'
 
 def text_file?(filename)
   file_type, status = Open3.capture2e("file", filename.to_s)
@@ -9,7 +10,7 @@ def text_file?(filename)
 end
 
 ARGV.extend OptionParser::Arguable
-
+ARGV.options.version = Git::Gsub::Ruby::VERSION
 ARGV.options.banner = <<USAGE
 Usage:
 ruby #{File.basename(__FILE__)} [options] from to [glob]
