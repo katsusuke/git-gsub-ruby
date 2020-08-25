@@ -1,64 +1,54 @@
 #!/usr/bin/env ruby
 
 require "open3"
+require 'optparse'
+require 'pry'
 
 def text_file?(filename)
-  file_type, status = Open3.capture2e("file", filename)
+  file_type, status = Open3.capture2e("file", filename.to_s)
   status.success? && file_type.include?("text")
 end
 
+ARGV.extend OptionParser::Arguable
+
+ARGV.options.banner = <<USAGE
+Usage:
+ruby #{File.basename(__FILE__)} [options] from to [glob]
+from      - gsub from string or ruby script
+to        - gsub to string or ruby script
+glob      - (optional)ruby glob pattern.
+options:
+-e|--eval   Evaluate `from` and `to` as a ruby script and replace the `to` string with the result of `from`.
+
+example:
+git gsub hoge piyo
+git gsub -re '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
+git gsub -re '"piyo\#{4 + 1}"' 'piyo\#{$1.to_i + 1}' '**/*.rb'
+USAGE
+
+opts = ARGV.getopts('e', 'eval')
+evaluate = (opts['e'] || opts['eval']) ? true : false
+
 begin
-  raise "Invalid argument" if ARGV.size != 2 and ARGV.size != 3
+  raise "Invalid argument" if ARGV.size != 2 && ARGV.size != 3
 
-  from_str, to, file_mask_str = ARGV
-  begin
-    from = eval(from_str)
-  rescue
-    from = from_str
-  end
+  from_str, to_str, glob = ARGV
+  from = evaluate ? eval(from_str) : from_str
+  glob ||= '**/*'
+  puts "from: #{from.inspect}, to_str: #{to_str}, glob: #{glob}"
 
-  file_mask = nil
-  begin
-    if file_mask_str
-      file_mask = eval(file_mask_str)
-    end
-  rescue
-    file_mask = file_mask_str
-  end
-
-  begin
-    eval(to)
-    to_str = nil
-  rescue => ex
-    p ex
-    to_str = to
-  end
-
-  print "from:"
-  if to_str
-    p from: from, to_str: to_str, file_mask: file_mask
-  else
-    p from: from, eval: to, file_mask: file_mask
-  end
-
-  files = `git ls-files`
-  files.lines.each do |path|
-    path.strip!
-    if file_mask
-      unless path.index file_mask
-        next
-      end
-    end
-
+  lsfiles = `git ls-files`
+  files = lsfiles.lines.to_a.map { |path| Pathname.new(path.strip) } & Pathname.glob(glob)
+  files.each do |path|
     next unless text_file? path
     buf = nil
     open(path) do |f|
       old_buf = f.read
       begin
-        if to_str
-          buf = old_buf.gsub(from, to_str)
+        if evaluate
+          buf = old_buf.gsub(from) { eval(to_str) }
         else
-          buf = old_buf.gsub(from) { eval(to) }
+          buf = old_buf.gsub(from, to_str)
         end
         buf = nil if old_buf == buf
       rescue => ex
@@ -75,17 +65,6 @@ begin
   end
 rescue => ex
   puts ex.message
-  print <<EOS
-Usage:
-ruby #{File.basename(__FILE__)} from to [file_mask]
-from      - gsub from string or ruby script
-to        - gsub to string or ruby script
-file_mask - File name or file name matching ruby script
-
-example:
-git gsub hoge piyo
-git gsub '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
-git gsub '"piyo\#{4 + 1}"' 'piyo\#{$1.to_i + 1}'
-EOS
-
+  puts ex.backtrace
+  puts ARGV.options.help
 end
