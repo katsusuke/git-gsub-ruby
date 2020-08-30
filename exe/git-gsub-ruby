@@ -3,6 +3,7 @@
 require "open3"
 require 'optparse'
 require 'git/gsub/ruby'
+require 'pathname'
 
 def text_file?(filename)
   file_type, status = Open3.capture2e("file", filename.to_s)
