@@ -45,7 +45,6 @@ begin
 
   lsfiles = `git ls-files`
   files = lsfiles.lines.to_a.map { |path| Pathname.new(path.strip) } & glob
-  p files
 
   files.each do |path|
     next unless text_file? path
