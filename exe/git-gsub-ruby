@@ -10,27 +10,29 @@ def text_file?(filename)
   status.success? && file_type.include?("text")
 end
 
-ARGV.extend OptionParser::Arguable
-ARGV.options.version = Git::Gsub::Ruby::VERSION
-ARGV.options.banner = <<USAGE
+evaluate = false
+debug = false
+
+opts = OptionParser.new do |o|
+  o.version = Git::Gsub::Ruby::VERSION
+  o.banner = <<-USAGE
 Usage:
-ruby #{File.basename(__FILE__)} [options] from to [glob]
-from      - gsub from string or ruby script
-to        - gsub to string or ruby script
-glob      - (optional)ruby glob pattern.
-options:
--e|--eval   Evaluate `from` and `to` as a ruby script and replace the `to` string with the result of `from`.
--d|--debug  Print debug.
+    ruby #{File.basename(__FILE__)} [options] from to [glob]
+    from      - gsub from string or ruby script
+    to        - gsub to string or ruby script
+    glob      - (optional)ruby glob pattern.
 
-example:
-git gsub hoge piyo
-git gsub -e '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
-git gsub -e '/belongs_to :(\w+)([^#\\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
-USAGE
+Example:
+    git gsub hoge piyo
+    git gsub -e '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
+    git gsub -e '/belongs_to :(\w+)([^#\\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
+Options:
+  USAGE
+  o.on('-e', '--eval', 'Evaluate `from` and `to` as a ruby script and replace the `to` string with the result of `from`.') { evaluate = true }
+  o.on('-d', '--debug', 'Print debug.') { debug = true }
+end
 
-opts = ARGV.getopts('e', 'eval', 'd', 'debug')
-evaluate = (opts['e'] || opts['eval']) ? true : false
-debug = (opts['d'] || opts['debug']) ? true : false
+opts.parse!(ARGV)
 
 begin
   raise "Invalid argument" if ARGV.size != 2 && ARGV.size != 3
@@ -38,7 +40,7 @@ begin
   from_str, to_str, glob = ARGV
   from = evaluate ? eval(from_str) : from_str
   glob ||= '**/*'
-  puts "from: #{from.inspect}, to_str: #{to_str}, glob: #{glob}"
+  puts "from: #{from.inspect}, to_str: #{to_str}, glob: #{glob}" if debug
 
   lsfiles = `git ls-files`
   files = lsfiles.lines.to_a.map { |path| Pathname.new(path.strip) } & Pathname.glob(glob)
@@ -61,7 +63,7 @@ begin
       end
     end
     if buf
-      puts "replaced:#{path}"
+      puts "replaced:#{path}" if debug
       open(path, "w") do |f|
         f.write buf
       end
@@ -72,5 +74,5 @@ rescue => ex
   if debug
     puts ex.backtrace
   end
-  puts ARGV.options.help
+  puts opts.help
 end
