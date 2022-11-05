@@ -20,15 +20,17 @@ to        - gsub to string or ruby script
 glob      - (optional)ruby glob pattern.
 options:
 -e|--eval   Evaluate `from` and `to` as a ruby script and replace the `to` string with the result of `from`.
+-d|--debug  Print debug.
 
 example:
 git gsub hoge piyo
 git gsub -e '/hoge([0-9]+)/' 'piyo\#{$1.to_i + 1}'
-git gsub -e '/belongs_to :(\w+)([^#\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
+git gsub -e '/belongs_to :(\w+)([^#\\n]*)(#.*)?$/' '"belongs_to :\#{$1}\#{$2.include?("optional: false") ? $2 : $2.strip + ", optional: true"}\#{$3 != nil ? " " + $3 : ""}"' 'app/models/**/*.rb'
 USAGE
 
-opts = ARGV.getopts('e', 'eval')
+opts = ARGV.getopts('e', 'eval', 'd', 'debug')
 evaluate = (opts['e'] || opts['eval']) ? true : false
+debug = (opts['d'] || opts['debug']) ? true : false
 
 begin
   raise "Invalid argument" if ARGV.size != 2 && ARGV.size != 3
@@ -40,6 +42,7 @@ begin
 
   lsfiles = `git ls-files`
   files = lsfiles.lines.to_a.map { |path| Pathname.new(path.strip) } & Pathname.glob(glob)
+
   files.each do |path|
     next unless text_file? path
     buf = nil
@@ -66,6 +69,8 @@ begin
   end
 rescue => ex
   puts ex.message
-  puts ex.backtrace
+  if debug
+    puts ex.backtrace
+  end
   puts ARGV.options.help
 end
