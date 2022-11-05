@@ -40,7 +40,7 @@ begin
   from_str, to_str, glob_pattern = ARGV
   from = evaluate ? eval(from_str) : from_str
   glob_pattern ||= '**/*'
-  puts "from: #{from.inspect}, to_str: #{to_str}, glob: #{glob}" if debug
+  puts "from: #{from.inspect}, to_str: #{to_str}, glob: #{glob_pattern}" if debug
   glob = Pathname.glob(glob_pattern, File::FNM_DOTMATCH)
 
   lsfiles = `git ls-files`
