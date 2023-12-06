@@ -5,11 +5,6 @@ require 'optparse'
 require 'git/gsub/ruby'
 require 'pathname'
 
-def text_file?(filename)
-  file_type, status = Open3.capture2e("file", filename.to_s)
-  status.success? && file_type.include?("text")
-end
-
 evaluate = false
 debug = false
 
@@ -47,10 +42,11 @@ begin
   files = lsfiles.lines.to_a.map { |path| Pathname.new(path.strip) } & glob
 
   files.each do |path|
-    next unless text_file? path
     buf = nil
-    open(path) do |f|
+    open(path, 'rb') do |f|
       old_buf = f.read
+      next unless old_buf.valid_encoding?
+
       begin
         if evaluate
           buf = old_buf.gsub(from) { eval(to_str) }
